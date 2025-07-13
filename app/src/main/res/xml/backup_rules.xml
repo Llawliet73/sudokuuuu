@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   This is the "full-backup" rule, which is used by 'adb backup' to back up
+   all files in the app's data directory.
+-->
+<full-backup-content>
+    <!--
+       This is a list of files to be backed up. By default, it includes all
+       files under the app's data directory except for those in the 'no-backup'
+       and 'cache' directories.
+    -->
+    <include domain="sharedpref" path="."/>
+    <include domain="database" path="."/>
+    <exclude domain="file" path="."/>
+    <exclude domain="root" path="."/>
+</full-backup-content>

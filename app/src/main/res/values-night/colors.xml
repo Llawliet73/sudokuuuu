@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DARK THEME -->
+
+    <!-- Core & Text Colors -->
+    <color name="colorBackground">#000000</color>
+    <color name="textColorPrimary">#FFFFFF</color>
+    <color name="textColorSecondary">#8E8E93</color>
+
+    <!-- Board Colors -->
+    <color name="boardLineColor">#48484A</color>
+    <color name="boardSelectedCell">#2C2C2E</color>
+    <color name="boardRelatedCell">#1C1C1E</color>
+    <color name="textPrefilled">#FFFFFF</color>
+    <color name="textUserFilled">#409CFF</color>
+
+    <!-- Number Pad & Secondary Button Colors -->
+    <color name="numberPadBackground">#2C2C2E</color>
+    <color name="numberPadText">#FFFFFF</color>
+
+    <!-- Note: Action Button colors are taken from the main colors.xml file -->
+</resources>

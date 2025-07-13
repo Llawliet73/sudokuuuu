@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   This file is used by the data extraction service to determine what files
+   should be backed up. The service gets this file by calling
+   ApplicationInfo.dataExtractionRules. This file is not parsed by the
+   app itself.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <!--
+           This is the default extraction rule. It says to back up all files under
+           the app's data directory except for those in the 'no-backup' and 'cache'
+           directories.
+        -->
+        <include domain="sharedpref"/>
+        <include domain="database"/>
+        <exclude domain="file" path="."/>
+        <exclude domain="root" path="."/>
+    </cloud-backup>
+    <!--
+       This is the "full-backup" rule, which is used by 'adb backup' to back up
+       all files in the app's data directory.
+    -->
+    <device-transfer>
+        <include domain="sharedpref"/>
+        <include domain="database"/>
+        <exclude domain="file" path="."/>
+        <exclude domain="root" path="."/>
+    </device-transfer>
+</data-extraction-rules>

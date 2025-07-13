@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This file controls the button's TEXT color -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- When the button is selected, the text is white -->
+    <item android:state_selected="true" android:color="@color/white" />
+    <!-- By default, the text is the primary text color of the theme -->
+    <item android:color="@color/textColorPrimary" />
+</selector>

@@ -1,0 +1,32 @@
+plugins {
+    id 'com.android.application'
+    // id 'org.jetbrains.kotlin.android'  // uncomment if using Kotlin
+}
+
+android {
+    namespace "com.example.sudokuzenith"   // <— replaces manifest package
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.sudokuzenith"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                          'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "com.google.android.material:material:1.11.0"
+    implementation "androidx.gridlayout:gridlayout:1.0.0"   // for columnWeight / rowWeight
+    // implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.24" // if using Kotlin
+}

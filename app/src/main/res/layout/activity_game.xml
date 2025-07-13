@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground"
+    android:padding="16dp"
+    tools:context=".GameActivity">
+
+    <!-- Header: Back Button and Title -->
+    <ImageButton
+        android:id="@+id/btn_back_to_menu"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_baseline_arrow_back_24"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/textColorPrimary" />
+
+    <TextView
+        android:id="@+id/text_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sudoku Game"
+        android:textColor="@color/textColorPrimary"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_back_to_menu"
+        app:layout_constraintStart_toEndOf="@+id/btn_back_to_menu"
+        app:layout_constraintTop_toTopOf="@+id/btn_back_to_menu" />
+
+    <!-- Header: Status Info -->
+    <TextView
+        android:id="@+id/text_errors"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Errors: 0/3"
+        android:textColor="@color/textColorSecondary"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_back_to_menu" />
+
+    <LinearLayout
+        android:id="@+id/timer_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/text_errors"
+        app:layout_constraintBottom_toBottomOf="@+id/text_errors">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_baseline_timer_24"
+            app:tint="@color/textColorSecondary" />
+        <TextView
+            android:id="@+id/text_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10:00"
+            android:textColor="@color/textColorSecondary"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:id="@+id/action_buttons"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_errors">
+
+        <!-- ✅ FIXED: All buttons are now the exact same type (MaterialButton) for perfect alignment -->
+        <com.google.android.material.button.MaterialButton style="@style/ActionButton.Green" android:id="@+id/btn_new_game_ingame" android:text="New Game"/>
+        <com.google.android.material.button.MaterialButton style="@style/ActionButton.Orange" android:id="@+id/btn_solve" android:text="Solve"/>
+        <com.google.android.material.button.MaterialButton style="@style/ActionButton.Blue" android:id="@+id/btn_check" android:text="Check"/>
+        <com.google.android.material.button.MaterialButton style="@style/ActionButton.Indigo" android:id="@+id/btn_undo" android:text="Undo"/>
+    </LinearLayout>
+
+    <com.example.sudokuzenith.view.SudokuBoard
+        android:id="@+id/sudokuBoard"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/number_pad"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/action_buttons" />
+
+    <!-- Number Pad -->
+    <GridLayout
+        android:id="@+id/number_pad"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="5"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button style="@style/NumberButton" android:id="@+id/btn_1" android:text="1"/>
+        <Button style="@style/NumberButton" android:id="@+id/btn_2" android:text="2"/>
+        <Button style="@style/NumberButton" android:id="@+id/btn_3" android:text="3"/>
+        <Button style="@style/NumberButton" android:id="@+id/btn_4" android:text="4"/>
+        <Button style="@style/NumberButton" android:id="@+id/btn_5" android:text="5"/>
+        <Button style="@style/NumberButton" android:id="@+id/btn_6" android:text="6"/>
+        <Button style="@style/NumberButton" android:id="@+id/btn_7" android:text="7"/>
+        <Button style="@style/NumberButton" android:id="@+id/btn_8" android:text="8"/>
+        <Button style="@style/NumberButton" android:id="@+id/btn_9" android:text="9"/>
+        <Button style="@style/NumberButton" android:id="@+id/btn_0" android:text="C"/>
+    </GridLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

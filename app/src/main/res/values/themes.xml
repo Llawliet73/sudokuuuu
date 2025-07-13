@@ -1,0 +1,70 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.SudokuZenith" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+
+    <!-- Main Menu Buttons -->
+    <style name="MainMenuButton.Primary" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_height">60dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:backgroundTint">@color/actionButtonCheck</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+    <style name="MainMenuButton.Secondary" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_height">60dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:backgroundTint">@color/numberPadBackground</item>
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <!-- ✅ FIXED: Added the missing layout_width attribute to this style -->
+    <style name="DifficultyButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:paddingHorizontal">20dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:backgroundTint">@color/button_difficulty_tint</item>
+        <item name="android:textColor">@color/button_difficulty_text</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <!-- Game Screen Buttons -->
+    <style name="ActionButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginHorizontal">4dp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+    <style name="ActionButton.Green" parent="ActionButton"><item name="android:backgroundTint">@color/actionButtonNewGame</item></style>
+    <style name="ActionButton.Orange" parent="ActionButton"><item name="android:backgroundTint">@color/actionButtonSolve</item></style>
+    <style name="ActionButton.Blue" parent="ActionButton"><item name="android:backgroundTint">@color/actionButtonCheck</item></style>
+    <style name="ActionButton.Indigo" parent="ActionButton"><item name="android:backgroundTint">@color/actionButtonUndo</item></style>
+    <style name="NumberButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:layout_gravity">fill</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:backgroundTint">@color/numberPadBackground</item>
+        <item name="android:textColor">@color/numberPadText</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+</resources>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LIGHT THEME -->
+
+    <!-- Core & Text Colors -->
+    <color name="colorBackground">#F2F2F7</color>
+    <color name="textColorPrimary">#000000</color>
+    <color name="textColorSecondary">#6C6C70</color>
+
+    <!-- Board Colors -->
+    <color name="boardLineColor">#D1D1D6</color>
+    <color name="boardSelectedCell">#B2EBF2</color>
+    <color name="boardRelatedCell">#E0F7FA</color>
+    <color name="textPrefilled">#000000</color>
+    <color name="textUserFilled">#007AFF</color>
+    
+    <!-- ✅ FIXED: Added the missing color for error highlighting -->
+    <color name="statusError">#FF3B30</color> <!-- Red color for errors -->
+
+
+    <!-- Number Pad & Secondary Button Colors -->
+    <color name="numberPadBackground">#E5E5EA</color>
+    <color name="numberPadText">#000000</color>
+
+    <!-- Action Button Colors (Used by themes.xml) -->
+    <color name="actionButtonNewGame">#34C759</color>
+    <color name="actionButtonSolve">#FF9500</color>
+    <color name="actionButtonCheck">#007AFF</color>
+    <color name="actionButtonUndo">#5856D6</color>
+
+    <!-- General -->
+    <color name="white">#FFFFFFFF</color>
+</resources>
