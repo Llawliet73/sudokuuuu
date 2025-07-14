@@ -121,4 +121,18 @@
         <Button style="@style/NumberButton" android:id="@+id/btn_0" android:text="C"/>
     </GridLayout>
 
+    <ImageButton
+        android:id="@+id/btn_restart"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="Restart"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_restart"
+        android:tint="@color/textColorPrimary"
+        app:layout_constraintBottom_toBottomOf="@+id/text_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
