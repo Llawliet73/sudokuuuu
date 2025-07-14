@@ -69,6 +69,6 @@ Here are some ideas for future features:
 
 ## ✍️ Author
 
-*   **Manthan** - *Initial Work* - [Manthan](https://github.com/Llawliet73) 
+*   **Manthan** - *Initial Work* - [Manthan](https://github.com/Llawliet73/sudokuuuu.git) 
 
 ---
