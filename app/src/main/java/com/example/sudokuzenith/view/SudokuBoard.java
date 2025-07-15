@@ -144,13 +144,29 @@ public class SudokuBoard extends View {
         return copy;
     }
 
+    public void setCell(int row,int col, int value, boolean isError) {
+        board[row][col] = value;
+        errorCells[row][col] = isError;
+        invalidate();
+    }
     public void setNumber(int number) {
         if (selectedRow != -1 && selectedCol != -1 && !prefilledCells[selectedRow][selectedCol]) {
-            if (getContext() instanceof GameActivity) ((GameActivity) getContext()).saveUndoState(getBoard());
+
+            int prev = board[selectedRow][selectedCol];
+            boolean prevError = errorCells[selectedRow][selectedCol];
+
+            if (getContext() instanceof GameActivity) {
+                ((GameActivity) getContext()).saveUndoState(selectedRow, selectedCol, prev, prevError);
+            }
+
             board[selectedRow][selectedCol] = number;
             errorCells[selectedRow][selectedCol] = false;
             invalidate();
         }
+    }
+    public void setErrorCell(int row, int col, boolean isError) {
+        errorCells[row][col] = isError;
+        invalidate();
     }
 
     // ✅ FIXED: A simpler check method that works with the GameActivity
@@ -173,6 +189,17 @@ public class SudokuBoard extends View {
     public void resetErrors() {
         for (int r = 0; r < 9; r++) {
             for (int c = 0; c < 9; c++) errorCells[r][c] = false;
+        }
+        invalidate();
+    }
+    public boolean [][] getErrorGrid(){
+        boolean[][] copy = new boolean[9][9];
+        for(int r=0;r<9;r++) copy[r] = errorCells[r].clone();
+        return copy;
+    }
+    public void setErrorGrid(boolean[][] errorState) {
+        for (int r = 0; r < 9; r++) {
+            errorCells[r] = errorState[r].clone();
         }
         invalidate();
     }
