@@ -5,3 +5,4 @@
 /build/
 # Android Studio local properties
 local.properties
+.idea/deploymentTargetSelector.xml
