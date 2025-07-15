@@ -171,7 +171,6 @@ public class SudokuBoard extends View {
 
     // ✅ FIXED: A simpler check method that works with the GameActivity
     public void checkBoard(int[][] solution) {
-        if (solution == null) return;
         resetErrors();
         for (int r = 0; r < 9; r++) {
             for (int c = 0; c < 9; c++) {
@@ -184,7 +183,10 @@ public class SudokuBoard extends View {
             }
         }
         invalidate();
+        ((GameActivity) getContext()).checkForEndGame();
+
     }
+
 
     public void resetErrors() {
         for (int r = 0; r < 9; r++) {
