@@ -1,5 +1,6 @@
 package com.example.sudokuzenith;
 
+import android.app.GameState;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -31,6 +32,7 @@ public class GameActivity extends AppCompatActivity {
     private int undoCount = 0;
     private boolean solverUsed = false;
     private long overtimeStartMillis = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +74,10 @@ public class GameActivity extends AppCompatActivity {
                sudokuBoard.checkBoard(solution);
             }
         });
+        findViewById(R.id.btn_pencil).setOnClickListener(v -> {
+            sudokuBoard.togglePencilMode();
+            Toast.makeText(this, sudokuBoard.isPencilMode() ? "Pencil Mode On" : "Pencil Mode Off", Toast.LENGTH_SHORT).show();
+        });
 
         // ✅ FIXED: The listener for the in-game New Game button is now correctly added.
         findViewById(R.id.btn_new_game_ingame).setOnClickListener(v -> loadNewGame(currentDifficulty));
@@ -84,7 +90,12 @@ public class GameActivity extends AppCompatActivity {
                 btn.setOnClickListener(v -> onNumberClick(number));
             }
         }
-        findViewById(R.id.btn_0).setOnClickListener(v -> onNumberClick(0));
+        findViewById(R.id.btn_0).setOnClickListener(v -> {
+            if(!sudokuBoard.isPencilMode())
+                onNumberClick(0);
+            else
+                sudokuBoard.removePencilMarks();
+        });
     }
     private static class GameState {
         int row,col;
