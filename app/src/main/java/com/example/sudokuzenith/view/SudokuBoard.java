@@ -11,9 +11,6 @@ import android.view.View;
 import androidx.core.content.ContextCompat;
 import com.example.sudokuzenith.GameActivity;
 import com.example.sudokuzenith.R;
-import com.example.sudokuzenith.SudokuSolver;
-
-import java.util.List;
 
 public class SudokuBoard extends View {
     private final int[][] board = new int[9][9];
@@ -145,6 +142,38 @@ public class SudokuBoard extends View {
         }
         return false;
     }
+//    public void solutionList(){
+//        List<int[][]> allSolutions = SudokuSolver.getAllSolutions(board);
+//        Log.d("SudokuDebug","Total Solutions: "+allSolutions.size());
+//
+//        for (int s = 0; s < allSolutions.size(); s++) {
+//            Log.d("SudokuDebug","Solution " + (s + 1));
+//            int[][] solution = allSolutions.get(s);
+//            for (int[] row : solution) {
+//                for (int num : row) Log.d("SudokuDebug",num + " ");
+//                Log.d("SudokuDebug","\n");
+//            }
+//            Log.d("SudokuDebug","\n");
+//        }
+//    }
+//    public void solutionList() {
+//        List<int[][]> allSolutions = SudokuSolver.getAllSolutions(board);
+//        Log.d("SudokuDebug", "Total Solutions: " + allSolutions.size());
+//
+//        for (int s = 0; s < allSolutions.size(); s++) {
+//            Log.d("SudokuDebug", "Solution " + (s + 1));
+//            int[][] solution = allSolutions.get(s);
+//            for (int[] row : solution) {
+//                StringBuilder rowBuilder = new StringBuilder();
+//                for (int num : row) {
+//                    rowBuilder.append(num).append(" ");
+//                }
+//                Log.d("SudokuDebug", rowBuilder.toString());
+//            }
+//            Log.d("SudokuDebug", "-------------------");
+//        }
+//    }
+
     public void togglePencilMode(){
         pencilMode = !pencilMode;
     }
@@ -158,7 +187,8 @@ public class SudokuBoard extends View {
     }
 
     public void setPrefilled(boolean[][] prefilledState) {
-        for (int r = 0; r < 9; r++) System.arraycopy(prefilledState[r], 0, this.prefilledCells[r], 0, 9);
+        for(int r=0;r<9;r++)
+            System.arraycopy(prefilledState[r], 0, this.prefilledCells[r], 0, 9);
     }
 
     public int[][] getBoard() {
@@ -214,24 +244,81 @@ public class SudokuBoard extends View {
         errorCells[row][col] = isError;
         invalidate();
     }
+    private boolean isValid(int[][] board, int row, int col, int num) {
+        errorCells[row][col] = false;
 
-    // ✅ FIXED: A simpler check method that works with the GameActivity
-    public void checkBoard(int[][] solution) {
-        resetErrors();
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                if (!prefilledCells[r][c] && board[r][c] != 0 && board[r][c] != solution[r][c]) {
-                    errorCells[r][c] = true;
-                    if (getContext() instanceof GameActivity) {
-                        ((GameActivity) getContext()).incrementErrorCount();
-                    }
+        for (int i = 0; i < 9; i++) {
+            if (board[row][i] == num || board[i][col] == num) {
+                errorCells[row][col] = true;
+                return false;
+            }
+        }
+
+        int boxRow = (row / 3) * 3;
+        int boxCol = (col / 3) * 3;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[boxRow + i][boxCol + j] == num) {
+                    errorCells[row][col] = true;
+                    return false;
                 }
             }
         }
-        invalidate();
-        ((GameActivity) getContext()).checkForEndGame();
 
+        return true;
     }
+
+//    public void checkBoard(int[][] solution) {
+//        resetErrors();
+//        for (int r = 0; r < 9; r++) {
+//            for (int c = 0; c < 9; c++) {
+//                if (!prefilledCells[r][c] && board[r][c] != 0 && board[r][c] != solution[r][c]) {
+//                    errorCells[r][c] = true;
+//                    if (getContext() instanceof GameActivity) {
+//                        ((GameActivity) getContext()).incrementErrorCount();
+//                    }
+//                }
+//            }
+//        }
+//        invalidate();
+//        ((GameActivity) getContext()).che  ckForEndGame();
+//
+//    }
+    public void checkBoard(int[][] solution) {
+        resetErrors();
+        String difficulty = GameActivity.difficulty();
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                if (!prefilledCells[r][c] && board[r][c] != 0) {
+
+                        int num = board[r][c];
+                        board[r][c] = 0;
+                        if (!isValid(board, r, c, num)) {
+                            errorCells[r][c] = true;
+                            if (getContext() instanceof GameActivity) {
+                                ((GameActivity) getContext()).incrementErrorCount();
+                            }
+                        }
+                        board[r][c] = num;
+//                    } else {
+//                        if (board[r][c] != solution[r][c]) {
+//                            errorCells[r][c] = true;
+//                            if (getContext() instanceof GameActivity) {
+//                                ((GameActivity) getContext()).incrementErrorCount();
+//                            }
+//                        }
+//                    }
+                }
+            }
+        }
+
+        invalidate();
+
+        if (getContext() instanceof GameActivity) {
+            ((GameActivity) getContext()).checkForEndGame();
+        }
+    }
+
 
 
     public void resetErrors() {

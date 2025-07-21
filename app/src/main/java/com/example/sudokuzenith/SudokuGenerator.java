@@ -1,12 +1,36 @@
 package com.example.sudokuzenith;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
-// A very basic Sudoku puzzle generator.
 public class SudokuGenerator {
+    private static int countSolutions(int [][] board) {
+        return countHelper(board, 0, 0, 0);
+    }
+    private static int countHelper(int [][]board,int row,int col, int count) {
+        if (count > 400) return count;
+        if (row == 9) return count + 1;
 
+        int nextRow = (col == 8) ? row + 1 : row;
+        int nextCol = (col + 1) % 9;
+
+        if (board[row][col] != 0) {
+            return countHelper(board, nextRow, nextCol, count);
+        }
+
+        for(int num =1;num<=9;num++) {
+            if(isSafe(board,row,col,num)){
+                board[row][col]  = num;
+                count = countHelper(board,nextRow,nextCol,count);
+                board[row][col] = 0;
+            }
+        }
+        return count;
+    }
     public enum Difficulty {
         EASY, MEDIUM, HARD
     }
@@ -105,16 +129,58 @@ public class SudokuGenerator {
 //            }
 //        }
 
-        while(cellsToRemove > 0) {
-            int row = random.nextInt(9);
-            int col = random.nextInt(9);
-            if(puzzle[row][col] !=0){
-                puzzle[row][col] = 0;
-                cellsToRemove--;
+//        while(cellsToRemove > 0) {
+//            int row = random.nextInt(9);
+//            int col = random.nextInt(9);
+//            if(puzzle[row][col] !=0){
+//                puzzle[row][col] = 0;
+//                cellsToRemove--;
+//            }
+//        }
+        if(!difficulty.equalsIgnoreCase("HARD")) {
+            while (cellsToRemove > 0) {
+                int row = random.nextInt(9);
+                int col = random.nextInt(9);
+
+                if (puzzle[row][col] != 0) {
+                    int backup = puzzle[row][col];
+                    puzzle[row][col] = 0;
+
+                    int[][] copy = deepCopy(puzzle);
+                    if (countSolutions(copy) == 1) {
+                        cellsToRemove--;
+                    } else {
+                        puzzle[row][col] = backup;
+                    }
+                }
             }
         }
+        else{
+            while (cellsToRemove > 0) {
+                int row = random.nextInt(9);
+                int col = random.nextInt(9);
+
+                if (puzzle[row][col] != 0) {
+                    puzzle[row][col] = 0;
+
+                    int[][] copy = deepCopy(puzzle);
+                    cellsToRemove--;
+                }
+            }
+        }
+//        Log.d("difficultyDebug", String.valueOf(difficulty.equals("HARD")));
+
 //        return puzzle;
     }
+
+    private static int[][] deepCopy(int[][] board) {
+        int[][] copy = new int[9][9];
+        for (int i = 0; i < 9; i++) {
+            System.arraycopy(board[i], 0, copy[i], 0, 9);
+        }
+        return copy;
+    }
+
 
 
 }
