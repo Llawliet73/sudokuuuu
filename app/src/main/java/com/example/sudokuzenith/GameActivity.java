@@ -1,10 +1,8 @@
 package com.example.sudokuzenith;
 
-import android.app.GameState;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -13,7 +11,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.sudokuzenith.view.SudokuBoard;
 
-import java.util.Arrays;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
@@ -34,7 +31,7 @@ public class GameActivity extends AppCompatActivity {
     private boolean solverUsed = false;
     private long overtimeStartMillis = 0;
 
-    private boolean prefilledState[][] = new boolean [9][9];
+    private final boolean prefilledState[][] = new boolean [9][9];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -336,23 +333,23 @@ public class GameActivity extends AppCompatActivity {
         }
         return copy;
     }
-    private boolean[][] deepCopy(boolean[][] original) {
-        boolean[][] copy = new boolean[original.length][];
-        for(int i=0;i<original.length;i++){
-            copy[i] = original[i].clone();
-        }
-        return copy;
-    }
+//    private boolean[][] deepCopy(boolean[][] original) {
+//        boolean[][] copy = new boolean[original.length][];
+//        for(int i=0;i<original.length;i++){
+//            copy[i] = original[i].clone();
+//        }
+//        return copy;
+//    }
     public static String difficulty(){
         return currentDifficulty;
     }
-    private int countTrueValues(boolean[][] array) {
-        int count = 0;
-        for (boolean[] row : array) {
-            for (boolean value : row) {
-                if (value) count++;
-            }
-        }
-        return count;
-    }
+//    private int countTrueValues(boolean[][] array) {
+//        int count = 0;
+//        for (boolean[] row : array) {
+//            for (boolean value : row) {
+//                if (value) count++;
+//            }
+//        }
+//        return count;
+//    }
 }
