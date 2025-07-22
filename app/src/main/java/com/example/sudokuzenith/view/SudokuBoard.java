@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import androidx.core.content.ContextCompat;
@@ -21,7 +22,9 @@ public class SudokuBoard extends View {
             prefilledTextPaint, userTextPaint, errorCellPaint, errorTextPaint;
     private float cellSize;
     private boolean isInitialized = false;
-
+    private final boolean [][][] pencilMarks = new boolean [9][9][9];
+    private boolean pencilMode=false;
+    private boolean isEditable = true;
     public SudokuBoard(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -57,7 +60,6 @@ public class SudokuBoard extends View {
         errorTextPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
         isInitialized = true;
     }
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -84,7 +86,6 @@ public class SudokuBoard extends View {
             canvas.drawRect(selectedCol * cellSize, selectedRow * cellSize, (selectedCol + 1) * cellSize, (selectedRow + 1) * cellSize, selectedCellPaint);
         }
     }
-
     private void drawGridLines(Canvas canvas) {
         for (int i = 0; i <= 9; i++) {
             Paint paint = (i % 3 == 0) ? thickLinePaint : thinLinePaint;
@@ -108,12 +109,27 @@ public class SudokuBoard extends View {
                     float y = r * cellSize + cellSize / 2f + textBounds.height() / 2f;
                     canvas.drawText(text, x, y, paint);
                 }
+                if(board[r][c]==0){
+                    Paint pencilPaint = new Paint(userTextPaint);
+                    pencilPaint.setTextSize(cellSize*0.2f);//Small size
+
+                    for(int n=0;n<9;n++){
+                        if(pencilMarks[r][c][n]) {
+                            int subRow = n/3;
+                            int subCol = n%3;
+                            float x = c * cellSize + (subCol+0.5f) * cellSize /3f;
+                            float y = r * cellSize + (subRow+0.75f) * cellSize / 3f;
+                            canvas.drawText(String.valueOf(n+1),x,y,pencilPaint);
+                        }
+                    }
+                }
             }
         }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if(!isEditable) return false;
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (cellSize == 0) return false;
             int col = (int) (event.getX() / cellSize);
@@ -127,7 +143,44 @@ public class SudokuBoard extends View {
         }
         return false;
     }
+//    public void solutionList(){
+//        List<int[][]> allSolutions = SudokuSolver.getAllSolutions(board);
+//        Log.d("SudokuDebug","Total Solutions: "+allSolutions.size());
+//
+//        for (int s = 0; s < allSolutions.size(); s++) {
+//            Log.d("SudokuDebug","Solution " + (s + 1));
+//            int[][] solution = allSolutions.get(s);
+//            for (int[] row : solution) {
+//                for (int num : row) Log.d("SudokuDebug",num + " ");
+//                Log.d("SudokuDebug","\n");
+//            }
+//            Log.d("SudokuDebug","\n");
+//        }
+//    }
+//    public void solutionList() {
+//        List<int[][]> allSolutions = SudokuSolver.getAllSolutions(board);
+//        Log.d("SudokuDebug", "Total Solutions: " + allSolutions.size());
+//
+//        for (int s = 0; s < allSolutions.size(); s++) {
+//            Log.d("SudokuDebug", "Solution " + (s + 1));
+//            int[][] solution = allSolutions.get(s);
+//            for (int[] row : solution) {
+//                StringBuilder rowBuilder = new StringBuilder();
+//                for (int num : row) {
+//                    rowBuilder.append(num).append(" ");
+//                }
+//                Log.d("SudokuDebug", rowBuilder.toString());
+//            }
+//            Log.d("SudokuDebug", "-------------------");
+//        }
+//    }
 
+    public void togglePencilMode(){
+        pencilMode = !pencilMode;
+    }
+    public boolean isPencilMode() {
+        return pencilMode;
+    }
     public void setBoard(int[][] boardState) {
         for (int r = 0; r < 9; r++) System.arraycopy(boardState[r], 0, this.board[r], 0, 9);
         resetErrors();
@@ -135,9 +188,10 @@ public class SudokuBoard extends View {
     }
 
     public void setPrefilled(boolean[][] prefilledState) {
-        for (int r = 0; r < 9; r++) System.arraycopy(prefilledState[r], 0, this.prefilledCells[r], 0, 9);
+        for(int r=0;r<9;r++) {
+            System.arraycopy(prefilledState[r], 0, this.prefilledCells[r], 0, 9);
+        }
     }
-
     public int[][] getBoard() {
         int[][] copy = new int[9][9];
         for (int i = 0; i < 9; i++) System.arraycopy(this.board[i], 0, copy[i], 0, 9);
@@ -150,17 +204,47 @@ public class SudokuBoard extends View {
         invalidate();
     }
     public void setNumber(int number) {
+        if(!isEditable) return;
         if (selectedRow != -1 && selectedCol != -1 && !prefilledCells[selectedRow][selectedCol]) {
 
-            int prev = board[selectedRow][selectedCol];
-            boolean prevError = errorCells[selectedRow][selectedCol];
+            if(pencilMode){
+                if(board[selectedRow][selectedCol]!=0) {
+                    int prev = board[selectedRow][selectedCol];
+                    boolean prevError = errorCells[selectedRow][selectedCol];
 
-            if (getContext() instanceof GameActivity) {
-                ((GameActivity) getContext()).saveUndoState(selectedRow, selectedCol, prev, prevError);
+                    if (getContext() instanceof GameActivity) {
+                        ((GameActivity) getContext()).saveUndoState(selectedRow, selectedCol, prev, prevError);
+                    }
+                    board[selectedRow][selectedCol] = 0;
+                    errorCells[selectedRow][selectedCol] = false;
+                }
+                pencilMarks[selectedRow][selectedCol][number-1] = !pencilMarks[selectedRow][selectedCol][number-1];
+            } else {
+                int prev = board[selectedRow][selectedCol];
+                boolean prevError = errorCells[selectedRow][selectedCol];
+
+                if (getContext() instanceof GameActivity) {
+                    ((GameActivity) getContext()).saveUndoState(selectedRow, selectedCol, prev, prevError);
+                }
+
+                board[selectedRow][selectedCol] = number;
+                errorCells[selectedRow][selectedCol] = false;
+
+                removePencilMarks();
             }
 
-            board[selectedRow][selectedCol] = number;
-            errorCells[selectedRow][selectedCol] = false;
+            invalidate();
+        }
+    }
+    public void removePencilMarks(){
+        for(int i=0;i<9;i++){
+            pencilMarks[selectedRow][selectedCol][i] = false;
+            invalidate();
+        }
+    }
+    public void removePencilMarks(int r, int c){
+        for(int i=0;i<9;i++){
+            pencilMarks[r][c][i] = false;
             invalidate();
         }
     }
@@ -168,23 +252,83 @@ public class SudokuBoard extends View {
         errorCells[row][col] = isError;
         invalidate();
     }
+    private boolean isValid(int[][] board, int row, int col, int num) {
+        errorCells[row][col] = false;
 
-    // ✅ FIXED: A simpler check method that works with the GameActivity
-    public void checkBoard(int[][] solution) {
-        resetErrors();
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                if (!prefilledCells[r][c] && board[r][c] != 0 && board[r][c] != solution[r][c]) {
-                    errorCells[r][c] = true;
-                    if (getContext() instanceof GameActivity) {
-                        ((GameActivity) getContext()).incrementErrorCount();
-                    }
+        for (int i = 0; i < 9; i++) {
+            if (board[row][i] == num || board[i][col] == num) {
+                errorCells[row][col] = true;
+                return false;
+            }
+        }
+
+        int boxRow = (row / 3) * 3;
+        int boxCol = (col / 3) * 3;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[boxRow + i][boxCol + j] == num) {
+                    errorCells[row][col] = true;
+                    return false;
                 }
             }
         }
-        invalidate();
-        ((GameActivity) getContext()).checkForEndGame();
 
+        return true;
+    }
+
+//    public void checkBoard(int[][] solution) {
+//        resetErrors();
+//        for (int r = 0; r < 9; r++) {
+//            for (int c = 0; c < 9; c++) {
+//                if (!prefilledCells[r][c] && board[r][c] != 0 && board[r][c] != solution[r][c]) {
+//                    errorCells[r][c] = true;
+//                    if (getContext() instanceof GameActivity) {
+//                        ((GameActivity) getContext()).incrementErrorCount();
+//                    }
+//                }
+//            }
+//        }
+//        invalidate();
+//        ((GameActivity) getContext()).che  ckForEndGame();
+//
+//    }
+    public void checkBoard(int[][] solution) {
+        resetErrors();
+        String difficulty = GameActivity.difficulty();
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                if (!prefilledCells[r][c] && board[r][c] != 0) {
+
+                        int num = board[r][c];
+                        board[r][c] = 0;
+                        if (!isValid(board, r, c, num)) {
+                            errorCells[r][c] = true;
+                            if (getContext() instanceof GameActivity) {
+                                ((GameActivity) getContext()).incrementErrorCount();
+                            }
+                        }
+                        board[r][c] = num;
+//                    } else {
+//                        if (board[r][c] != solution[r][c]) {
+//                            errorCells[r][c] = true;
+//                            if (getContext() instanceof GameActivity) {
+//                                ((GameActivity) getContext()).incrementErrorCount();
+//                            }
+//                        }
+//                    }
+                }
+            }
+        }
+
+        invalidate();
+
+        if (getContext() instanceof GameActivity) {
+            ((GameActivity) getContext()).checkForEndGame();
+        }
+    }
+    public void setInteractionEnabled(boolean enabled){
+        isEditable = enabled;
+        invalidate();
     }
 
 
@@ -205,4 +349,6 @@ public class SudokuBoard extends View {
         }
         invalidate();
     }
+
+
 }

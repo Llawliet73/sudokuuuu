@@ -1,8 +1,10 @@
 package com.example.sudokuzenith;
 
+import android.app.GameState;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -24,14 +26,15 @@ public class GameActivity extends AppCompatActivity {
     private LinearLayout timerContainer;
     private CountDownTimer timer;
     private int errorCount = 0;
-    private String currentDifficulty;
+    private static String currentDifficulty;
     private int[][] puzzleInitial;
     private int[][] startingGrid;
     private int[][] solution;
     private int undoCount = 0;
     private boolean solverUsed = false;
     private long overtimeStartMillis = 0;
-
+    private boolean gameEnded = false;
+    private boolean prefilledState[][] = new boolean [9][9];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +58,7 @@ public class GameActivity extends AppCompatActivity {
         } else {
             timerContainer.setVisibility(View.GONE);
         }
+//        sudokuBoard.solutionList();
     }
 
     private void setupListeners() {
@@ -72,8 +76,11 @@ public class GameActivity extends AppCompatActivity {
                sudokuBoard.checkBoard(solution);
             }
         });
+        findViewById(R.id.btn_pencil).setOnClickListener(v -> {
+            sudokuBoard.togglePencilMode();
+            Toast.makeText(this, sudokuBoard.isPencilMode() ? "Pencil Mode On" : "Pencil Mode Off", Toast.LENGTH_SHORT).show();
+        });
 
-        // ✅ FIXED: The listener for the in-game New Game button is now correctly added.
         findViewById(R.id.btn_new_game_ingame).setOnClickListener(v -> loadNewGame(currentDifficulty));
         findViewById(R.id.btn_restart).setOnClickListener(v -> restartGame());
         for (int i = 1; i <= 9; i++) {
@@ -84,7 +91,12 @@ public class GameActivity extends AppCompatActivity {
                 btn.setOnClickListener(v -> onNumberClick(number));
             }
         }
-        findViewById(R.id.btn_0).setOnClickListener(v -> onNumberClick(0));
+        findViewById(R.id.btn_0).setOnClickListener(v -> {
+            if(!sudokuBoard.isPencilMode())
+                onNumberClick(0);
+            else
+                sudokuBoard.removePencilMarks();
+        });
     }
     private static class GameState {
         int row,col;
@@ -108,10 +120,28 @@ public class GameActivity extends AppCompatActivity {
         sudokuBoard.setNumber(number);
         soundManager.play("click");
     }
+    private void enableButtons(){
+        if(gameEnded){
+            gameEnded = false;
+            sudokuBoard.setInteractionEnabled(true);
+            for (int i = 0; i <= 9; i++) {
+                int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
+                findViewById(resId).setEnabled(true);
+            }
+            findViewById(R.id.btn_undo).setEnabled(true);
+            findViewById(R.id.btn_check).setEnabled(true);
+            findViewById(R.id.btn_pencil).setEnabled(true);
+        }
+    }
     private void restartGame(){
+        if(gameEnded) {
+            enableButtons();
+        }
+        sudokuBoard.setInteractionEnabled(true);
         if(puzzleInitial !=null){
             startingGrid= deepCopy(puzzleInitial);
             sudokuBoard.setBoard(startingGrid);
+            solverUsed = false;
             errorCount = 0;
             updateErrorsText();
             undoStack.clear();
@@ -119,11 +149,28 @@ public class GameActivity extends AppCompatActivity {
         }
     }
     private void loadNewGame(String difficulty) {
+        if(gameEnded) enableButtons();
         solution = SudokuGenerator.generateSolvedBoard();
         startingGrid = deepCopy(solution);
         SudokuGenerator.removeCells(startingGrid,difficulty);
+        for (int r = 0; r < 9; r++)
+        {
+            for(int c=0;c<9;c++){
+                if(startingGrid[r][c] !=0)
+                    prefilledState[r][c] = true;
+                else
+                    prefilledState[r][c] = false;
+            }
+        }
+        for(int r=0;r<9;r++)
+        {
+            for(int c=0;c<9;c++){
+                sudokuBoard.removePencilMarks(r,c);
+            }
+        }
+        sudokuBoard.setPrefilled(prefilledState);
+
         puzzleInitial = deepCopy(startingGrid);
-//
 //        if ("Easy".equals(difficulty)) {
 //            startingGrid = new int[][]{{6,0,0,1,9,5,0,0,0},{0,9,8,0,0,0,0,6,0},{5,3,0,0,7,0,0,0,0},{8,0,0,0,6,0,0,0,3},{4,0,0,8,0,3,0,0,1},{7,0,0,0,2,0,0,0,6},{0,6,0,0,0,0,2,8,0},{0,0,0,4,1,9,0,0,5},{0,0,0,0,8,0,0,7,9}};
 //            solution = new int[][]{{6,2,4,1,9,5,3,7,8},{1,9,8,3,4,7,5,6,2},{5,3,7,6,2,8,1,4,9},{8,1,2,7,6,4,9,5,3},{4,5,9,8,3,2,6,1,7},{7,6,3,5,1,9,8,2,4},{9,4,5,7,6,3,1,8,2},{2,8,6,9,5,1,7,3,4},{1,7,3,4,8,2,9,5,6}};
@@ -143,6 +190,7 @@ public class GameActivity extends AppCompatActivity {
 //        }
 //        sudokuBoard.setPrefilled(prefilledGrid);
         sudokuBoard.setBoard(startingGrid);
+        sudokuBoard.setInteractionEnabled(true);
         errorCount = 0;
         updateErrorsText();
         undoStack.clear();
@@ -156,13 +204,34 @@ public class GameActivity extends AppCompatActivity {
             checkForEndGame();
         }
     }
+//    public void checkForEndGame(){
+//
+//        int[][] board = sudokuBoard.getBoard();
+//        boolean isComplete = true;
+//        for(int r=0;r<9;r++){
+//            for(int c=0;c<9;c++){
+//                if(board[r][c] != solution[r][c]){
+//                    isComplete = false;
+//                    break;
+//                }
+//            }
+//        }
+//
+//        if(isComplete) {
+//            endGame("win");
+//        }
+//        else if(errorCount>=3){
+//            endGame("lose");
+//        }
+//    }
     public void checkForEndGame(){
 
         int[][] board = sudokuBoard.getBoard();
+        boolean [][] errorCells = sudokuBoard.getErrorGrid();
         boolean isComplete = true;
         for(int r=0;r<9;r++){
             for(int c=0;c<9;c++){
-                if(board[r][c] != solution[r][c]){
+                if(board[r][c] == 0 || errorCells[r][c]){
                     isComplete = false;
                     break;
                 }
@@ -177,6 +246,8 @@ public class GameActivity extends AppCompatActivity {
         }
     }
     private void endGame(String result) {
+        if (timer != null) timer.cancel();
+        gameEnded = true;
         String timeOver = "";
         if(overtimeStartMillis>0) {
             long elapsedMillis = System.currentTimeMillis() - overtimeStartMillis;
@@ -194,7 +265,6 @@ public class GameActivity extends AppCompatActivity {
         if(timer!=null)
             intent.putExtra("timeLeft",timerText.getText().toString());
         startActivity(intent);
-        finish();
     }
     private void updateErrorsText() {
         errorsText.setText("Errors: " + errorCount + "/3");
@@ -208,9 +278,25 @@ public class GameActivity extends AppCompatActivity {
                 Toast.makeText(GameActivity.this, "You've run out of time!", Toast.LENGTH_LONG).show();
                 startOvertimeClock();
             }
+
         }.start();
     }
-
+    @Override
+    protected void onResume(){
+        GameActivity.super.onResume();
+        if(gameEnded){
+            if(timer!=null)
+                timer.cancel();
+            sudokuBoard.setInteractionEnabled(false);
+            for (int i = 0; i <= 9; i++) {
+                int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
+                findViewById(resId).setEnabled(false);
+            }
+            findViewById(R.id.btn_undo).setEnabled(false);
+            findViewById(R.id.btn_check).setEnabled(false);
+            findViewById(R.id.btn_pencil).setEnabled(false);
+        }
+    }
     private void startOvertimeClock() {
         overtimeStartMillis = System.currentTimeMillis();
     }
@@ -302,6 +388,9 @@ public class GameActivity extends AppCompatActivity {
             copy[i] = original[i].clone();
         }
         return copy;
+    }
+    public static String difficulty(){
+        return currentDifficulty;
     }
     private int countTrueValues(boolean[][] array) {
         int count = 0;
