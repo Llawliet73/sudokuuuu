@@ -33,7 +33,7 @@ public class GameActivity extends AppCompatActivity {
     private int undoCount = 0;
     private boolean solverUsed = false;
     private long overtimeStartMillis = 0;
-
+    private boolean gameEnded = false;
     private boolean prefilledState[][] = new boolean [9][9];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +120,24 @@ public class GameActivity extends AppCompatActivity {
         sudokuBoard.setNumber(number);
         soundManager.play("click");
     }
+    private void enableButtons(){
+        if(gameEnded){
+            gameEnded = false;
+            sudokuBoard.setInteractionEnabled(true);
+            for (int i = 0; i <= 9; i++) {
+                int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
+                findViewById(resId).setEnabled(true);
+            }
+            findViewById(R.id.btn_undo).setEnabled(true);
+            findViewById(R.id.btn_check).setEnabled(true);
+            findViewById(R.id.btn_pencil).setEnabled(true);
+        }
+    }
     private void restartGame(){
+        if(gameEnded) {
+            enableButtons();
+        }
+        sudokuBoard.setInteractionEnabled(true);
         if(puzzleInitial !=null){
             startingGrid= deepCopy(puzzleInitial);
             sudokuBoard.setBoard(startingGrid);
@@ -132,6 +149,7 @@ public class GameActivity extends AppCompatActivity {
         }
     }
     private void loadNewGame(String difficulty) {
+        if(gameEnded) enableButtons();
         solution = SudokuGenerator.generateSolvedBoard();
         startingGrid = deepCopy(solution);
         SudokuGenerator.removeCells(startingGrid,difficulty);
@@ -140,9 +158,18 @@ public class GameActivity extends AppCompatActivity {
             for(int c=0;c<9;c++){
                 if(startingGrid[r][c] !=0)
                     prefilledState[r][c] = true;
+                else
+                    prefilledState[r][c] = false;
+            }
+        }
+        for(int r=0;r<9;r++)
+        {
+            for(int c=0;c<9;c++){
+                sudokuBoard.removePencilMarks(r,c);
             }
         }
         sudokuBoard.setPrefilled(prefilledState);
+
         puzzleInitial = deepCopy(startingGrid);
 //        if ("Easy".equals(difficulty)) {
 //            startingGrid = new int[][]{{6,0,0,1,9,5,0,0,0},{0,9,8,0,0,0,0,6,0},{5,3,0,0,7,0,0,0,0},{8,0,0,0,6,0,0,0,3},{4,0,0,8,0,3,0,0,1},{7,0,0,0,2,0,0,0,6},{0,6,0,0,0,0,2,8,0},{0,0,0,4,1,9,0,0,5},{0,0,0,0,8,0,0,7,9}};
@@ -163,6 +190,7 @@ public class GameActivity extends AppCompatActivity {
 //        }
 //        sudokuBoard.setPrefilled(prefilledGrid);
         sudokuBoard.setBoard(startingGrid);
+        sudokuBoard.setInteractionEnabled(true);
         errorCount = 0;
         updateErrorsText();
         undoStack.clear();
@@ -218,6 +246,8 @@ public class GameActivity extends AppCompatActivity {
         }
     }
     private void endGame(String result) {
+        if (timer != null) timer.cancel();
+        gameEnded = true;
         String timeOver = "";
         if(overtimeStartMillis>0) {
             long elapsedMillis = System.currentTimeMillis() - overtimeStartMillis;
@@ -248,9 +278,25 @@ public class GameActivity extends AppCompatActivity {
                 Toast.makeText(GameActivity.this, "You've run out of time!", Toast.LENGTH_LONG).show();
                 startOvertimeClock();
             }
+
         }.start();
     }
-
+    @Override
+    protected void onResume(){
+        GameActivity.super.onResume();
+        if(gameEnded){
+            if(timer!=null)
+                timer.cancel();
+            sudokuBoard.setInteractionEnabled(false);
+            for (int i = 0; i <= 9; i++) {
+                int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
+                findViewById(resId).setEnabled(false);
+            }
+            findViewById(R.id.btn_undo).setEnabled(false);
+            findViewById(R.id.btn_check).setEnabled(false);
+            findViewById(R.id.btn_pencil).setEnabled(false);
+        }
+    }
     private void startOvertimeClock() {
         overtimeStartMillis = System.currentTimeMillis();
     }
