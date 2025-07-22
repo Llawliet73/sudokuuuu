@@ -150,6 +150,7 @@ public class GameActivity extends AppCompatActivity {
     }
     private void loadNewGame(String difficulty) {
         if(gameEnded) enableButtons();
+        solverUsed = false;
         solution = SudokuGenerator.generateSolvedBoard();
         startingGrid = deepCopy(solution);
         SudokuGenerator.removeCells(startingGrid,difficulty);
