@@ -10,7 +10,7 @@
 
 
     <ImageButton
-            android:id="@+id/btn_back_to_menu"
+            android:id="@+id/btn_back_to_game"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -18,7 +18,16 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/textColorPrimary" />
-
+    <ImageButton
+        android:id="@+id/btn_back_to_menu"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintStart_toEndOf="@+id/btn_back_to_game"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/baseline_home_24"
+        app:tint="@color/textColorPrimary"/>
     <TextView
         android:id="@+id/endMessage"
         android:layout_width="wrap_content"
@@ -33,5 +42,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

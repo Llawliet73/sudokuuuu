@@ -24,7 +24,7 @@ public class SudokuBoard extends View {
     private boolean isInitialized = false;
     private final boolean [][][] pencilMarks = new boolean [9][9][9];
     private boolean pencilMode=false;
-    private boolean isEditable = true;
+
     public SudokuBoard(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -129,7 +129,6 @@ public class SudokuBoard extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if(!isEditable) return false;
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (cellSize == 0) return false;
             int col = (int) (event.getX() / cellSize);
@@ -188,10 +187,10 @@ public class SudokuBoard extends View {
     }
 
     public void setPrefilled(boolean[][] prefilledState) {
-        for(int r=0;r<9;r++) {
+        for(int r=0;r<9;r++)
             System.arraycopy(prefilledState[r], 0, this.prefilledCells[r], 0, 9);
-        }
     }
+
     public int[][] getBoard() {
         int[][] copy = new int[9][9];
         for (int i = 0; i < 9; i++) System.arraycopy(this.board[i], 0, copy[i], 0, 9);
@@ -204,7 +203,6 @@ public class SudokuBoard extends View {
         invalidate();
     }
     public void setNumber(int number) {
-        if(!isEditable) return;
         if (selectedRow != -1 && selectedCol != -1 && !prefilledCells[selectedRow][selectedCol]) {
 
             if(pencilMode){
@@ -239,12 +237,6 @@ public class SudokuBoard extends View {
     public void removePencilMarks(){
         for(int i=0;i<9;i++){
             pencilMarks[selectedRow][selectedCol][i] = false;
-            invalidate();
-        }
-    }
-    public void removePencilMarks(int r, int c){
-        for(int i=0;i<9;i++){
-            pencilMarks[r][c][i] = false;
             invalidate();
         }
     }
@@ -326,10 +318,7 @@ public class SudokuBoard extends View {
             ((GameActivity) getContext()).checkForEndGame();
         }
     }
-    public void setInteractionEnabled(boolean enabled){
-        isEditable = enabled;
-        invalidate();
-    }
+
 
 
     public void resetErrors() {

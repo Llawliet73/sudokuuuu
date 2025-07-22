@@ -52,7 +52,11 @@ public class GameEndActivity extends AppCompatActivity {
         endMessage.setText(message.toString());
 
         findViewById(R.id.btn_back_to_menu).setOnClickListener(v -> {
-            startActivity(new Intent(this,MainActivity.class));
+            Intent intent = new Intent(this,MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        });
+        findViewById(R.id.btn_back_to_game).setOnClickListener(v -> {
             finish();
         });
     }

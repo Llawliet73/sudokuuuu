@@ -299,7 +299,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/home/hello/android-studio/plugins/android/lib/android.jar!/images/material/icons/materialicons/restart_alt/baseline_restart_alt_24.xml" />
+                                      <entry key="url" value="jar:file:/home/hello/android-studio/plugins/android/lib/android.jar!/images/material/icons/materialicons/home/baseline_home_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -309,7 +309,7 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="outputName" value="ic_restart" />
+                            <entry key="outputName" value="baseline_home_24" />
                           </map>
                         </option>
                       </PersistentState>
