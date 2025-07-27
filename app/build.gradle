@@ -1,21 +1,33 @@
-// Root (project‑level) build.gradle
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
+plugins {
+    id 'com.android.application'
+    // id 'org.jetbrains.kotlin.android'  // uncomment if using Kotlin
+}
+
+android {
+    namespace "com.example.sudokuzenith"   // <— replaces manifest package
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.sudokuzenith"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.11.1'
-          // if you use Kotlin:
-        // classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24"
-        classpath 'com.google.gms:google-services:4.3.15' // ✅ Required for AdMob
-        // classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24" // if using Kotlin
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+        }
     }
 }
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
+dependencies {
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "com.google.android.material:material:1.11.0"
+    implementation "androidx.gridlayout:gridlayout:1.0.0"   // for columnWeight / rowWeight
+    // implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.24" // if using Kotlin 
+    implementation 'com.google.android.gms:play-services-ads:22.6.0' 
 }
