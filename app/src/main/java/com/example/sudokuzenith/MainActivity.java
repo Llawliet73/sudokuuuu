@@ -8,6 +8,9 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     private SwitchMaterial timerSwitch;
     private List<Button> difficultyButtons;
     private String selectedDifficulty = "Medium"; // Default difficulty
-
+    private AdView adView;  // Banner ad view
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +28,14 @@ public class MainActivity extends AppCompatActivity {
         applySavedTheme();
 
         setContentView(R.layout.activity_main);
+
+       // Initialize Mobile Ads SDK
+        MobileAds.initialize(this, initializationStatus -> {});
+
+        // Find AdView and load an ad
+        adView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
 
         timerSwitch = findViewById(R.id.switch_timer);
         Button newGameButton = findViewById(R.id.btn_new_game);
@@ -77,5 +88,30 @@ public class MainActivity extends AppCompatActivity {
             b.setOnClickListener(listener);
         }
         mediumBtn.setSelected(true);
+    }
+
+    // Override onPause and onResume to pause/resume ads properly
+    @Override
+    protected void onPause() {
+        if (adView != null) {
+            adView.pause();
+        }
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (adView != null) {
+            adView.resume();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (adView != null) {
+            adView.destroy();
+        }
+        super.onDestroy();
     }
 }
