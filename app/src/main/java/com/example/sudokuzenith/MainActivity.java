@@ -13,7 +13,6 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.material.switchmaterial.SwitchMaterial;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
     private SwitchMaterial timerSwitch;
     private List<Button> difficultyButtons;
     private String selectedDifficulty = "Medium"; // Default difficulty
-
     private AdView adView;  // Banner ad view
 
     @Override
@@ -34,7 +32,8 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // Initialize Mobile Ads SDK
+       // Initialize Mobile Ads SDK
+
         MobileAds.initialize(this, initializationStatus -> {});
 
         // Find AdView and load an ad
@@ -95,7 +94,9 @@ public class MainActivity extends AppCompatActivity {
         mediumBtn.setSelected(true);
     }
 
-    // Optional: Override onPause and onResume to pause/resume ads properly
+
+    // Override onPause and onResume to pause/resume ads properly
+
     @Override
     protected void onPause() {
         if (adView != null) {
