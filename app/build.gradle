@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace "com.example.sudokuzenith"   // <— replaces manifest package
-    compileSdk 35
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.sudokuzenith"
         minSdk 24
-        targetSdk 35
+        targetSdk 34
         versionCode 1
         versionName "1.0"
     }
@@ -19,7 +19,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
-                          'proguard-rules.pro'
+                    'proguard-rules.pro'
         }
     }
 }

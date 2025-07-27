@@ -129,22 +129,10 @@
         android:contentDescription="Restart"
         android:scaleType="centerInside"
         android:src="@drawable/ic_restart"
-        app:tint="@color/textColorPrimary"
+        android:tint="@color/textColorPrimary"
         app:layout_constraintBottom_toBottomOf="@+id/text_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <Switch
-        android:id="@+id/btn_pencil"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/textColorPrimary"
-        android:textStyle="bold"
-        android:text="Pencil\nMode"
-        app:layout_constraintBottom_toTopOf="@+id/number_pad"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/sudokuBoard" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
