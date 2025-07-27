@@ -17,7 +17,7 @@ public class SudokuGenerator {
 
         int nextRow = (col == 8) ? row + 1 : row;
         int nextCol = (col + 1) % 9;
-
+//c
         if (board[row][col] != 0) {
             return countHelper(board, nextRow, nextCol, count);
         }
