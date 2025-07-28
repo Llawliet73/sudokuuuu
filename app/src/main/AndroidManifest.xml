@@ -9,13 +9,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SudokuZenith">
-
-        <!-- AdMob App ID (Test ID) -->
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
-
-        <!-- Your app's activities -->
+    <!-- AdMob App ID (Test ID) -->
+    <meta-data
+        android:name="com.google.android.gms.ads.APPLICATION_ID"
+        android:value="ca-app-pub-3940256099942544~3347511713" />
+        <activity
+            android:name=".GameEndActivity"
+            android:exported="false" />
+        <!-- ✅ ADDED THIS ACTIVITY -->
         <activity
             android:name=".SettingsActivity"
             android:exported="false" />
@@ -27,10 +28,10 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>

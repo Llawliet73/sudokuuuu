@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace "com.example.sudokuzenith"   // <— replaces manifest package
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.example.sudokuzenith"
         minSdk 24
-        targetSdk 34
+        targetSdk 35
         versionCode 1
         versionName "1.0"
     }
@@ -19,7 +19,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
-                    'proguard-rules.pro'
+                          'proguard-rules.pro'
         }
     }
 }
@@ -27,7 +27,10 @@ android {
 dependencies {
     implementation "androidx.appcompat:appcompat:1.6.1"
     implementation "com.google.android.material:material:1.11.0"
-    implementation "androidx.gridlayout:gridlayout:1.0.0"   // for columnWeight / rowWeight
-    // implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.24" // if using Kotlin 
-    implementation 'com.google.android.gms:play-services-ads:22.6.0' 
+    implementation "androidx.gridlayout:gridlayout:1.0.0"
+    implementation 'androidx.activity:activity:1.10.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'com.google.android.gms:play-services-ads-api:24.5.0'
+// for columnWeight / rowWeight
+    // implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.24" // if using Kotlin
 }
