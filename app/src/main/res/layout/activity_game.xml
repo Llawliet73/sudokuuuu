@@ -48,7 +48,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
+        android.orientation="horizontal"
         android:visibility="gone"
         tools:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
@@ -77,11 +77,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:orientation="horizontal"
+        android:gravity="center_vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_errors">
 
-        <!-- ✅ FIXED: All buttons are now the exact same type (MaterialButton) for perfect alignment -->
         <com.google.android.material.button.MaterialButton style="@style/ActionButton.Green" android:id="@+id/btn_new_game_ingame" android:text="New Game"/>
         <com.google.android.material.button.MaterialButton style="@style/ActionButton.Orange" android:id="@+id/btn_solve" android:text="Solve"/>
         <com.google.android.material.button.MaterialButton style="@style/ActionButton.Blue" android:id="@+id/btn_check" android:text="Check"/>
@@ -135,7 +135,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Switch
-        android:id="@+id/btn_pencil"
+        android:id="@+id/btn_pencil" 
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/textColorPrimary"
