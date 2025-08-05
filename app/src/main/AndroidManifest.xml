@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.sudokuzenith">
 
-    <!-- ✅ FIXED: Added the required permission for the app to access the internet to load ads. -->
+
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -12,10 +12,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SudokuZenith">
-
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256098942550~3347511713" />
+            android:value="ca-app-pub-3940256099942544~3347511713" />
 
         <activity
             android:name=".GameEndActivity"

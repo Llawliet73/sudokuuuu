@@ -3,6 +3,7 @@ package com.example.sudokuzenith;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -78,7 +79,15 @@ public class GameActivity extends AppCompatActivity {
             loadNewGame(currentDifficulty);
         }
     }
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
 
+        if (intent.getBooleanExtra("start_in_review_mode", false)) {
+            enterReviewMode();
+        }
+    }
     private void setupListeners() {
         findViewById(R.id.btn_back_to_menu).setOnClickListener(v -> finish());
         findViewById(R.id.btn_undo).setOnClickListener(v -> undoLastMove());
@@ -106,7 +115,10 @@ public class GameActivity extends AppCompatActivity {
             exitReviewMode(); // Make sure all buttons are enabled
         });
 
-        findViewById(R.id.btn_restart).setOnClickListener(v -> restartGame());
+        findViewById(R.id.btn_restart).setOnClickListener(v -> {
+            restartGame();
+            exitReviewMode();
+        });
         for (int i = 1; i <= 9; i++) {
             int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
             Button btn = findViewById(resId);
@@ -137,10 +149,8 @@ public class GameActivity extends AppCompatActivity {
         sudokuBoard.setInteractionEnabled(false);
 
         // Disable all buttons except "New Game"
-        findViewById(R.id.btn_solve).setEnabled(false);
         findViewById(R.id.btn_check).setEnabled(false);
         findViewById(R.id.btn_undo).setEnabled(false);
-        findViewById(R.id.btn_restart).setEnabled(false);
         findViewById(R.id.btn_pencil).setEnabled(false);
         for (int i = 0; i <= 9; i++) {
             int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
@@ -153,12 +163,9 @@ public class GameActivity extends AppCompatActivity {
     private void exitReviewMode() {
         // Re-enable board interaction
         sudokuBoard.setInteractionEnabled(true);
-
         // Re-enable all buttons
-        findViewById(R.id.btn_solve).setEnabled(true);
         findViewById(R.id.btn_check).setEnabled(true);
         findViewById(R.id.btn_undo).setEnabled(true);
-        findViewById(R.id.btn_restart).setEnabled(true);
         findViewById(R.id.btn_pencil).setEnabled(true);
         for (int i = 0; i <= 9; i++) {
             int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
@@ -247,7 +254,11 @@ public class GameActivity extends AppCompatActivity {
             errorCount = 0;
             updateErrorsText();
             undoStack.clear();
-            if(timerContainer.getVisibility() == View.VISIBLE) startTimer();
+            boolean isTimerEnabled = getIntent().getBooleanExtra("isTimerEnabled", true);
+            if (isTimerEnabled) {
+                timerContainer.setVisibility(View.VISIBLE);
+                startTimer();
+            }
         }
     }
     private void loadNewGame(String difficulty) {
@@ -277,7 +288,7 @@ public class GameActivity extends AppCompatActivity {
         errorCount = 0;
         updateErrorsText();
         undoStack.clear();
-        
+
         boolean isTimerEnabled = getIntent().getBooleanExtra("isTimerEnabled", true);
         if (isTimerEnabled) {
              timerContainer.setVisibility(View.VISIBLE);

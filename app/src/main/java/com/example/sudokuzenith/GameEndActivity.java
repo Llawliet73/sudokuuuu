@@ -69,7 +69,7 @@ public class GameEndActivity extends AppCompatActivity {
         if ("win".equals(result)) {
             resultIcon.setImageResource(R.drawable.ic_trophy);
 
-            // ✅ FIXED: Restored your custom messages and emojis.
+            // Restored custom messages and emojis.
             if (solverUsed) {
                 resultTitle.setText("Puzzle solved 👀" +
                 " but you used the Solver " +
@@ -106,7 +106,15 @@ public class GameEndActivity extends AppCompatActivity {
 
         fabShare.setOnClickListener(v -> shareResult());
     }
-
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(GameEndActivity.this, GameActivity.class);
+        intent.putExtra("start_in_review_mode", true);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
+    }
     private void shareResult() {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");

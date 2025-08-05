@@ -8,17 +8,17 @@
     tools:context=".MainActivity"
     android:background="@drawable/background_menu">
 
-    <!-- ✅ FIXED: Changed app:layout_constraintBottom_toBottomOf="parent" to
-         app:layout_constraintTop_toTopOf="parent" to lock the ad banner to the top. -->
+
     <com.google.android.gms.ads.AdView
+        xmlns:ads="http://schemas.android.com/apk/res-auto"
         android:id="@+id/adView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         ads:adSize="BANNER"
-        ads:adUnitId="ca-app-pub-3940256098942550/6300978111"
+        ads:adUnitId="ca-app-pub-3940256099942544/6300978111"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <LinearLayout
         android:id="@+id/difficulty_selector_main"
