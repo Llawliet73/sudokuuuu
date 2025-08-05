@@ -1,48 +1,58 @@
 package com.example.sudokuzenith;
 
-import android.app.GameState;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.sudokuzenith.view.SudokuBoard;
 
-import java.util.Arrays;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 public class GameActivity extends AppCompatActivity {
 
+    private static class GameState {
+        int row, col;
+        int prevValue;
+        boolean wasError;
+        GameState(int row, int col, int prevValue, boolean wasError) {
+            this.row = row; this.col = col; this.prevValue = prevValue; this.wasError = wasError;
+        }
+    }
     private SudokuBoard sudokuBoard;
     private SoundManager soundManager;
-    private final Stack<GameState> undoStack = new Stack<>();
     private TextView timerText, errorsText;
     private LinearLayout timerContainer;
     private CountDownTimer timer;
     private int errorCount = 0;
-    private static String currentDifficulty;
+    private String currentDifficulty;
     private int[][] puzzleInitial;
     private int[][] startingGrid;
     private int[][] solution;
     private int undoCount = 0;
     private boolean solverUsed = false;
     private long overtimeStartMillis = 0;
-    private boolean gameEnded = false;
-    private boolean prefilledState[][] = new boolean [9][9];
+    private final Stack<GameState> undoStack = new Stack<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
-        boolean isTimerEnabled = getIntent().getBooleanExtra("isTimerEnabled", true);
-        currentDifficulty = getIntent().getStringExtra("difficulty");
-
+        // Initialize all views
         sudokuBoard = findViewById(R.id.sudokuBoard);
         timerContainer = findViewById(R.id.timer_container);
         timerText = findViewById(R.id.text_timer);
@@ -50,39 +60,65 @@ public class GameActivity extends AppCompatActivity {
         soundManager = new SoundManager(this);
 
         setupListeners();
-        loadNewGame(currentDifficulty);
 
-        if (isTimerEnabled) {
-            timerContainer.setVisibility(View.VISIBLE);
-            startTimer();
+        // Check if we are starting in review mode or starting a fresh game.
+        if (getIntent().getBooleanExtra("start_in_review_mode", false)) {
+            // This logic will run when coming back from the end screen
+            // We don't load a new game, we just disable the controls.
+            enterReviewMode();
         } else {
-            timerContainer.setVisibility(View.GONE);
+            // This logic runs for a brand new game from the main menu
+            currentDifficulty = getIntent().getStringExtra("difficulty");
+            boolean isTimerEnabled = getIntent().getBooleanExtra("isTimerEnabled", true);
+            if (isTimerEnabled) {
+                timerContainer.setVisibility(View.VISIBLE);
+                startTimer();
+            } else {
+                timerContainer.setVisibility(View.GONE);
+            }
+            loadNewGame(currentDifficulty);
         }
-//        sudokuBoard.solutionList();
     }
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
 
+        if (intent.getBooleanExtra("start_in_review_mode", false)) {
+            enterReviewMode();
+        }
+    }
     private void setupListeners() {
         findViewById(R.id.btn_back_to_menu).setOnClickListener(v -> finish());
-        findViewById(R.id.btn_undo).setOnClickListener(v -> {
-            undoLastMove();
-//            if(sudokuBoard.errorCells)
-        });
+        findViewById(R.id.btn_undo).setOnClickListener(v -> undoLastMove());
         findViewById(R.id.btn_solve).setOnClickListener(v -> {
             solverUsed = true;
-            if (solution != null) sudokuBoard.setBoard(solution);
+            if (solution != null) {
+                sudokuBoard.setBoard(solution);
+                sudokuBoard.setInteractionEnabled(false);
+            }
         });
         findViewById(R.id.btn_check).setOnClickListener(v -> {
             if (solution != null) {
-               sudokuBoard.checkBoard(solution);
+                sudokuBoard.checkBoard(solution);
             }
         });
-        findViewById(R.id.btn_pencil).setOnClickListener(v -> {
+        Switch pencilSwitch = findViewById(R.id.btn_pencil);
+        pencilSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             sudokuBoard.togglePencilMode();
             Toast.makeText(this, sudokuBoard.isPencilMode() ? "Pencil Mode On" : "Pencil Mode Off", Toast.LENGTH_SHORT).show();
         });
 
-        findViewById(R.id.btn_new_game_ingame).setOnClickListener(v -> loadNewGame(currentDifficulty));
-        findViewById(R.id.btn_restart).setOnClickListener(v -> restartGame());
+        // When New Game is clicked, it will now re-enable all the buttons.
+        findViewById(R.id.btn_new_game_ingame).setOnClickListener(v -> {
+            loadNewGame(currentDifficulty);
+            exitReviewMode(); // Make sure all buttons are enabled
+        });
+
+        findViewById(R.id.btn_restart).setOnClickListener(v -> {
+            restartGame();
+            exitReviewMode();
+        });
         for (int i = 1; i <= 9; i++) {
             int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
             Button btn = findViewById(resId);
@@ -92,112 +128,173 @@ public class GameActivity extends AppCompatActivity {
             }
         }
         findViewById(R.id.btn_0).setOnClickListener(v -> {
-            if(!sudokuBoard.isPencilMode())
+            if(!sudokuBoard.isPencilMode()) {
                 onNumberClick(0);
-            else
-                sudokuBoard.removePencilMarks();
+            } else {
+                if (sudokuBoard.getSelectedRow() != -1 && sudokuBoard.getSelectedCol() != -1) {
+                    sudokuBoard.removePencilMarks(sudokuBoard.getSelectedRow(), sudokuBoard.getSelectedCol());
+                }
+            }
         });
     }
-    private static class GameState {
-        int row,col;
-        int prevValue;
-        boolean wasError;
 
-        GameState(int row,int col, int prevValue, boolean wasError) {
-            this.row = row;
-            this.col = col;
-            this.prevValue = prevValue;
-            this.wasError = wasError;
+    private void enterReviewMode() {
+        // Stop the timer if it's running
+        if (timer != null) {
+            timer.cancel();
         }
-//        int [][] boardState;
-//        boolean [][] errorState;
-//        GameState(int[][] boardState,boolean[][] errorState) {
-//            this.boardState = boardState;
-//            this.errorState = errorState;
-//        }
+        timerContainer.setVisibility(View.GONE); // Hide timer
+
+        // Disable board interaction
+        sudokuBoard.setInteractionEnabled(false);
+
+        // Disable all buttons except "New Game"
+        findViewById(R.id.btn_check).setEnabled(false);
+        findViewById(R.id.btn_undo).setEnabled(false);
+        findViewById(R.id.btn_pencil).setEnabled(false);
+        for (int i = 0; i <= 9; i++) {
+            int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
+            if (findViewById(resId) != null) {
+                findViewById(resId).setEnabled(false);
+            }
+        }
+    }
+
+    private void exitReviewMode() {
+        // Re-enable board interaction
+        sudokuBoard.setInteractionEnabled(true);
+        // Re-enable all buttons
+        findViewById(R.id.btn_check).setEnabled(true);
+        findViewById(R.id.btn_undo).setEnabled(true);
+        findViewById(R.id.btn_pencil).setEnabled(true);
+        for (int i = 0; i <= 9; i++) {
+            int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
+            if (findViewById(resId) != null) {
+                findViewById(resId).setEnabled(true);
+            }
+        }
+
+        // Show timer if it was enabled for this difficulty
+        boolean isTimerEnabled = getIntent().getBooleanExtra("isTimerEnabled", true);
+        if (isTimerEnabled) {
+            timerContainer.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void endGame(String result) {
+        sudokuBoard.setInteractionEnabled(false);
+        if (timer != null) timer.cancel();
+        String timeOverStr = "";
+        if (overtimeStartMillis > 0) {
+            long elapsedMillis = System.currentTimeMillis() - overtimeStartMillis;
+            long minutes = TimeUnit.MILLISECONDS.toMinutes(elapsedMillis);
+            long seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedMillis) % 60;
+            timeOverStr = String.format("%02d:%02d", minutes, seconds);
+        }
+        Intent intent = new Intent(this, GameEndActivity.class);
+        intent.putExtra("result", result);
+        intent.putExtra("errors", errorCount);
+        intent.putExtra("undoCount", undoCount);
+        intent.putExtra("solverUsed", solverUsed);
+        intent.putExtra("timeLeft", timerText.getText().toString());
+        intent.putExtra("timeOver", timeOverStr);
+        startActivity(intent);
+        // We do NOT call finish() here, so we can return to this screen in review mode
+    }
+
+    private void undoLastMove() {
+        if (!undoStack.isEmpty()) {
+            GameState lastState = undoStack.pop();
+            undoCount++;
+            boolean isCurrentlyError = sudokuBoard.getErrorGrid()[lastState.row][lastState.col];
+            sudokuBoard.setCell(lastState.row, lastState.col, lastState.prevValue, lastState.wasError);
+            if (isCurrentlyError && !lastState.wasError) {
+                errorCount--;
+            }
+            if (errorCount < 0) errorCount = 0;
+            updateErrorsText();
+            soundManager.play("click");
+        } else {
+            Toast.makeText(this, "Nothing to undo!", Toast.LENGTH_SHORT).show();
+        }
+    }
+    public void saveUndoState(int row, int col, int prevValue, boolean wasError) {
+        undoStack.push(new GameState(row, col, prevValue, wasError));
+    }
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
     private void onNumberClick(int number) {
+        if (sudokuBoard.getSelectedRow() == -1 || sudokuBoard.getSelectedCol() == -1) {
+            Toast.makeText(this, "Please select a cell first!", Toast.LENGTH_SHORT).show();
+            return;
+        }
         sudokuBoard.setNumber(number);
         soundManager.play("click");
     }
-    private void enableButtons(){
-        if(gameEnded){
-            gameEnded = false;
-            sudokuBoard.setInteractionEnabled(true);
-            for (int i = 0; i <= 9; i++) {
-                int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
-                findViewById(resId).setEnabled(true);
-            }
-            findViewById(R.id.btn_undo).setEnabled(true);
-            findViewById(R.id.btn_check).setEnabled(true);
-            findViewById(R.id.btn_pencil).setEnabled(true);
-        }
-    }
     private void restartGame(){
-        if(gameEnded) {
-            enableButtons();
-        }
-        sudokuBoard.setInteractionEnabled(true);
         if(puzzleInitial !=null){
+            solverUsed = false;
+            sudokuBoard.setInteractionEnabled(true);
             startingGrid= deepCopy(puzzleInitial);
             sudokuBoard.setBoard(startingGrid);
-            solverUsed = false;
+            boolean[][] prefilledGrid = new boolean[9][9];
+            for (int r = 0; r < 9; r++) {
+                for (int c = 0; c < 9; c++) {
+                    prefilledGrid[r][c] = (startingGrid[r][c] != 0);
+                    sudokuBoard.removePencilMarks(r,c);
+                }
+            }
+            sudokuBoard.setPrefilled(prefilledGrid);
             errorCount = 0;
             updateErrorsText();
             undoStack.clear();
-            if(timerContainer.getVisibility() == View.VISIBLE) startTimer();
+            boolean isTimerEnabled = getIntent().getBooleanExtra("isTimerEnabled", true);
+            if (isTimerEnabled) {
+                timerContainer.setVisibility(View.VISIBLE);
+                startTimer();
+            }
         }
     }
     private void loadNewGame(String difficulty) {
-        if(gameEnded) enableButtons();
+        if (difficulty == null) {
+            // Handle case where we return from review mode without a set difficulty
+            // Default to Medium or get from SharedPreferences if available
+            currentDifficulty = "Medium"; 
+        } else {
+            currentDifficulty = difficulty;
+        }
+        
         solverUsed = false;
+        sudokuBoard.setInteractionEnabled(true);
         solution = SudokuGenerator.generateSolvedBoard();
         startingGrid = deepCopy(solution);
-        SudokuGenerator.removeCells(startingGrid,difficulty);
-        for (int r = 0; r < 9; r++)
-        {
-            for(int c=0;c<9;c++){
-                if(startingGrid[r][c] !=0)
-                    prefilledState[r][c] = true;
-                else
-                    prefilledState[r][c] = false;
-            }
-        }
-        for(int r=0;r<9;r++)
-        {
-            for(int c=0;c<9;c++){
+        SudokuGenerator.removeCells(startingGrid, currentDifficulty);
+        puzzleInitial = deepCopy(startingGrid);
+        boolean[][] prefilledGrid = new boolean[9][9];
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                prefilledGrid[r][c] = (startingGrid[r][c] != 0);
                 sudokuBoard.removePencilMarks(r,c);
             }
         }
-        sudokuBoard.setPrefilled(prefilledState);
-
-        puzzleInitial = deepCopy(startingGrid);
-//        if ("Easy".equals(difficulty)) {
-//            startingGrid = new int[][]{{6,0,0,1,9,5,0,0,0},{0,9,8,0,0,0,0,6,0},{5,3,0,0,7,0,0,0,0},{8,0,0,0,6,0,0,0,3},{4,0,0,8,0,3,0,0,1},{7,0,0,0,2,0,0,0,6},{0,6,0,0,0,0,2,8,0},{0,0,0,4,1,9,0,0,5},{0,0,0,0,8,0,0,7,9}};
-//            solution = new int[][]{{6,2,4,1,9,5,3,7,8},{1,9,8,3,4,7,5,6,2},{5,3,7,6,2,8,1,4,9},{8,1,2,7,6,4,9,5,3},{4,5,9,8,3,2,6,1,7},{7,6,3,5,1,9,8,2,4},{9,4,5,7,6,3,1,8,2},{2,8,6,9,5,1,7,3,4},{1,7,3,4,8,2,9,5,6}};
-//        } else if ("Hard".equals(difficulty)) {
-//            startingGrid = new int[][]{{8,0,0,0,0,0,0,0,0},{0,0,3,6,0,0,0,0,0},{0,7,0,0,9,0,2,0,0},{0,5,0,0,0,7,0,0,0},{0,0,0,0,4,5,7,0,0},{0,0,0,1,0,0,0,3,0},{0,0,1,0,0,0,0,6,8},{0,0,8,5,0,0,0,1,0},{0,9,0,0,0,0,4,0,0}};
-//            solution = new int[][]{{8,1,2,7,5,3,6,4,9},{9,4,3,6,8,2,1,7,5},{6,7,5,4,9,1,2,8,3},{1,5,4,2,3,7,8,9,6},{3,6,9,8,4,5,7,2,1},{2,8,7,1,6,9,5,3,4},{5,2,1,9,7,4,3,6,8},{4,3,8,5,2,6,9,1,7},{7,9,6,3,1,8,4,5,2}};
-//        } else { // Medium
-//            startingGrid = new int[][]{{5,3,0,0,7,0,0,0,0},{6,0,0,1,9,5,0,0,0},{0,9,8,0,0,0,0,6,0},{8,0,0,0,6,0,0,0,3},{4,0,0,8,0,3,0,0,1},{7,0,0,0,2,0,0,0,6},{0,6,0,0,0,0,2,8,0},{0,0,0,4,1,9,0,0,5},{0,0,0,0,8,0,0,7,9}};
-//            solution = new int[][]{{5,3,4,6,7,8,9,1,2},{6,7,2,1,9,5,3,4,8},{1,9,8,3,4,2,5,6,7},{8,5,9,7,6,1,4,2,3},{4,2,6,8,5,3,7,9,1},{7,1,3,9,2,4,8,5,6},{9,6,1,5,3,7,2,8,4},{2,8,7,4,1,9,6,3,5},{3,4,5,2,8,6,1,7,9}};
-//        }
-
-//        boolean[][] prefilledGrid = new boolean[9][9];
-//        for (int r = 0; r < 9; r++) {
-//            for (int c = 0; c < 9; c++) {
-//                prefilledGrid[r][c] = (startingGrid[r][c] != 0);
-//            }
-//        }
-//        sudokuBoard.setPrefilled(prefilledGrid);
+        sudokuBoard.setPrefilled(prefilledGrid);
         sudokuBoard.setBoard(startingGrid);
-        sudokuBoard.setInteractionEnabled(true);
         errorCount = 0;
         updateErrorsText();
         undoStack.clear();
-        if (timerContainer.getVisibility() == View.VISIBLE) startTimer();
-    }
 
+        boolean isTimerEnabled = getIntent().getBooleanExtra("isTimerEnabled", true);
+        if (isTimerEnabled) {
+             timerContainer.setVisibility(View.VISIBLE);
+             startTimer();
+        }
+    }
     public void incrementErrorCount() {
         errorCount++;
         updateErrorsText();
@@ -205,40 +302,22 @@ public class GameActivity extends AppCompatActivity {
             checkForEndGame();
         }
     }
-//    public void checkForEndGame(){
-//
-//        int[][] board = sudokuBoard.getBoard();
-//        boolean isComplete = true;
-//        for(int r=0;r<9;r++){
-//            for(int c=0;c<9;c++){
-//                if(board[r][c] != solution[r][c]){
-//                    isComplete = false;
-//                    break;
-//                }
-//            }
-//        }
-//
-//        if(isComplete) {
-//            endGame("win");
-//        }
-//        else if(errorCount>=3){
-//            endGame("lose");
-//        }
-//    }
     public void checkForEndGame(){
-
         int[][] board = sudokuBoard.getBoard();
-        boolean [][] errorCells = sudokuBoard.getErrorGrid();
         boolean isComplete = true;
-        for(int r=0;r<9;r++){
-            for(int c=0;c<9;c++){
-                if(board[r][c] == 0 || errorCells[r][c]){
-                    isComplete = false;
-                    break;
+        if(solution != null) {
+            for (int r = 0; r < 9; r++) {
+                for (int c = 0; c < 9; c++) {
+                    if (board[r][c] != solution[r][c]) {
+                        isComplete = false;
+                        break;
+                    }
                 }
+                if(!isComplete) break;
             }
+        } else {
+            isComplete = false;
         }
-
         if(isComplete) {
             endGame("win");
         }
@@ -246,130 +325,28 @@ public class GameActivity extends AppCompatActivity {
             endGame("lose");
         }
     }
-    private void endGame(String result) {
-        if (timer != null) timer.cancel();
-        gameEnded = true;
-        String timeOver = "";
-        if(overtimeStartMillis>0) {
-            long elapsedMillis = System.currentTimeMillis() - overtimeStartMillis;
-            long secondsOver = (int) (elapsedMillis/1000);
-            long minutes = secondsOver/60;
-            long seconds = secondsOver % 60;
-            timeOver = String.format("%02d:%02d",minutes, seconds);
-        }
-        Intent intent = new Intent(this, GameEndActivity.class);
-        intent.putExtra("result", result);
-        intent.putExtra("errors",errorCount);
-        intent.putExtra("undoCount",undoCount);
-        intent.putExtra("solverUsed",solverUsed);
-        intent.putExtra("timeOver",timeOver);
-        if(timer!=null)
-            intent.putExtra("timeLeft",timerText.getText().toString());
-        startActivity(intent);
-    }
     private void updateErrorsText() {
         errorsText.setText("Errors: " + errorCount + "/3");
     }
-
     private void startTimer() {
         if (timer != null) timer.cancel();
+        overtimeStartMillis = 0;
         timer = new CountDownTimer(600000, 1000) {
             public void onTick(long millisUntilFinished) { timerText.setText(formatTime(millisUntilFinished)); }
-            public void onFinish() { timerText.setText("00:00");
+            public void onFinish() {
+                timerText.setText("00:00");
                 Toast.makeText(GameActivity.this, "You've run out of time!", Toast.LENGTH_LONG).show();
                 startOvertimeClock();
             }
-
         }.start();
-    }
-    @Override
-    protected void onResume(){
-        GameActivity.super.onResume();
-        if(gameEnded){
-            if(timer!=null)
-                timer.cancel();
-            sudokuBoard.setInteractionEnabled(false);
-            for (int i = 0; i <= 9; i++) {
-                int resId = getResources().getIdentifier("btn_" + i, "id", getPackageName());
-                findViewById(resId).setEnabled(false);
-            }
-            findViewById(R.id.btn_undo).setEnabled(false);
-            findViewById(R.id.btn_check).setEnabled(false);
-            findViewById(R.id.btn_pencil).setEnabled(false);
-        }
     }
     private void startOvertimeClock() {
         overtimeStartMillis = System.currentTimeMillis();
     }
-
     private String formatTime(long millis) {
         return String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(millis),
                 TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
     }
-
-    private void undoLastMove() {
-        if (!undoStack.isEmpty()) {
-            GameState state = undoStack.pop();
-            undoCount++;
-//            int currentErrors = countTrueValues(sudokuBoard.getErrorGrid());
-            // Get current value before undo for comparison
-            int currentVal = sudokuBoard.getBoard()[state.row][state.col];
-            boolean isCurrentlyError = sudokuBoard.getErrorGrid()[state.row][state.col];
-
-            // Undo the value and error status
-            sudokuBoard.setCell(state.row, state.col, state.prevValue, state.wasError);
-
-//            // Restore board and error cells
-//            sudokuBoard.setBoard(previousState.boardState);
-//            sudokuBoard.setErrorGrid(previousState.errorState);
-//
-//            int newErrors = countTrueValues(previousState.errorState);
-
-            //Adjust error count
-//            if (isCurrentlyError && !state.wasError) {
-//                errorCount--;
-//            } else if (!isCurrentlyError && state.wasError) {
-//                errorCount++;
-//            }
-
-            sudokuBoard.setCell(state.row,state.col,state.prevValue,false);
-            boolean shouldBeError = state.prevValue !=0  && state.prevValue != solution[state.row][state.col];
-            sudokuBoard.setErrorCell(state.row,state.col,shouldBeError);
-            if (isCurrentlyError && !shouldBeError) {
-                errorCount--;
-            } else if (!isCurrentlyError && shouldBeError) {
-                errorCount++;
-            }
-//            errorCount -= (currentErrors - newErrors);
-            if (errorCount < 0) errorCount = 0;
-
-            updateErrorsText();
-
-            soundManager.play("click");
-        } else {
-            Toast.makeText(this, "Nothing to undo!", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-//    public void saveUndoState(int[][] currentState) {
-//        boolean[][] errorState = sudokuBoard.getErrorGrid();
-//        undoStack.push(new GameState(deepCopy(currentState),deepCopy(errorState)));
-//    }
-//    public void saveUndoState(int[][] currentState,boolean[][] currentErrors) {
-//        undoStack.push(new GameState(deepCopy(currentState),deepCopy(currentErrors)));
-//    }
-    public void saveUndoState(int row, int col, int prevValue, boolean wasError) {
-        undoStack.push(new GameState(row, col, prevValue, wasError));
-    }
-
-
-//    private int[][] cloneBoard(int[][] src) {
-//        if (src == null) return null;
-//        int[][] copy = new int[9][9];
-//        for (int i = 0; i < 9; i++) System.arraycopy(src[i], 0, copy[i], 0, 9);
-//        return copy;
-//    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -377,29 +354,14 @@ public class GameActivity extends AppCompatActivity {
         if (soundManager != null) soundManager.release();
     }
     private int[][] deepCopy(int[][] original) {
+        if (original == null) return null;
         int[][] copy = new int[original.length][];
         for(int i=0;i<original.length;i++){
             copy[i] = original[i].clone();
         }
         return copy;
     }
-    private boolean[][] deepCopy(boolean[][] original) {
-        boolean[][] copy = new boolean[original.length][];
-        for(int i=0;i<original.length;i++){
-            copy[i] = original[i].clone();
-        }
-        return copy;
-    }
-    public static String difficulty(){
+    public String getCurrentDifficulty() {
         return currentDifficulty;
-    }
-    private int countTrueValues(boolean[][] array) {
-        int count = 0;
-        for (boolean[] row : array) {
-            for (boolean value : row) {
-                if (value) count++;
-            }
-        }
-        return count;
     }
 }
