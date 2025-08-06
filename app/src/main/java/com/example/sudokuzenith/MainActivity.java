@@ -3,13 +3,18 @@ package com.example.sudokuzenith;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast; // ✅ FIXED: Added the missing import for Toast
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,23 +23,37 @@ public class MainActivity extends AppCompatActivity {
 
     private SwitchMaterial timerSwitch;
     private List<Button> difficultyButtons;
-    private String selectedDifficulty = "Medium"; // Default difficulty
-    private AdView adView;  // Banner ad view
+    private String selectedDifficulty = "Medium";
+    private AdView adView;
+    private static final String TAG = "MainActivityAds";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // ✅ This is critical: Apply the saved theme BEFORE the layout is created.
         applySavedTheme();
-
         setContentView(R.layout.activity_main);
 
-       // Initialize Mobile Ads SDK
         MobileAds.initialize(this, initializationStatus -> {});
 
-        // Find AdView and load an ad
         adView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
+
+        adView.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+                // Code to be executed when an ad finishes loading.
+                Log.d(TAG, "Ad successfully loaded and is now visible.");
+                // This Toast will now work.
+                Toast.makeText(MainActivity.this, "Test Ad Loaded!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAdFailedToLoad(LoadAdError adError) {
+                // Code to be executed when an ad request fails.
+                Log.e(TAG, "Ad failed to load with error: " + adError.getMessage());
+            }
+        });
+        
         adView.loadAd(adRequest);
 
         timerSwitch = findViewById(R.id.switch_timer);
@@ -57,9 +76,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void applySavedTheme() {
         SharedPreferences sharedPreferences = getSharedPreferences("AppSettings", MODE_PRIVATE);
-        // Default to true (Dark Mode)
         boolean isDarkMode = sharedPreferences.getBoolean("dark_mode_enabled", true);
-
         if (isDarkMode) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         } else {
@@ -75,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
         difficultyButtons.add(easyBtn);
         difficultyButtons.add(mediumBtn);
         difficultyButtons.add(hardBtn);
-
         View.OnClickListener listener = v -> {
             for (Button b : difficultyButtons) {
                 b.setSelected(false);
@@ -83,14 +99,12 @@ public class MainActivity extends AppCompatActivity {
             v.setSelected(true);
             selectedDifficulty = ((Button) v).getText().toString();
         };
-
         for (Button b : difficultyButtons) {
             b.setOnClickListener(listener);
         }
         mediumBtn.setSelected(true);
     }
 
-    // Override onPause and onResume to pause/resume ads properly
     @Override
     protected void onPause() {
         if (adView != null) {
