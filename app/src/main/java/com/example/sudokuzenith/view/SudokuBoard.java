@@ -199,6 +199,12 @@ public class SudokuBoard extends View {
             invalidate();
         }
     }
+    public void removePencilMarks(){
+        for(int i=0;i<9;i++){
+            pencilMarks[selectedRow][selectedCol][i] = false;
+            invalidate();
+        }
+    }
     public void removePencilMarks(int r, int c){
         if (r >= 0 && r < 9 && c >= 0 && c < 9) {
             for(int i=0;i<9;i++){
@@ -233,7 +239,7 @@ public class SudokuBoard extends View {
     }
     public void checkBoard(int[][] solution) {
         resetErrors();
-        String difficulty = ((GameActivity) getContext()).getCurrentDifficulty();
+        String difficulty = GameActivity.difficulty();
         for (int r = 0; r < 9; r++) {
             for (int c = 0; c < 9; c++) {
                 if (!prefilledCells[r][c] && board[r][c] != 0) {
