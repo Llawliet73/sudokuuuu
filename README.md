@@ -1,4 +1,4 @@
-#  SudokuZenith 🧩
+#  Sudoku Puzzle 🧩
 
 _A classic Sudoku game for Android with a clean, modern interface and theme support._
 
